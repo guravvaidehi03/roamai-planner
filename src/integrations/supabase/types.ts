@@ -14,7 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      trips: {
+        Row: {
+          ai_response: Json | null
+          budget: string | null
+          created_at: string
+          days: number
+          destination: string
+          hotel_preference: string | null
+          id: string
+          image_url: string | null
+          interests: string[] | null
+          is_favorite: boolean
+          transport: string | null
+          travelers: string | null
+          trip_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_response?: Json | null
+          budget?: string | null
+          created_at?: string
+          days?: number
+          destination: string
+          hotel_preference?: string | null
+          id?: string
+          image_url?: string | null
+          interests?: string[] | null
+          is_favorite?: boolean
+          transport?: string | null
+          travelers?: string | null
+          trip_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_response?: Json | null
+          budget?: string | null
+          created_at?: string
+          days?: number
+          destination?: string
+          hotel_preference?: string | null
+          id?: string
+          image_url?: string | null
+          interests?: string[] | null
+          is_favorite?: boolean
+          transport?: string | null
+          travelers?: string | null
+          trip_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
