@@ -198,15 +198,19 @@ function Popular() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.05 }}
-            className="group relative aspect-[5/6] overflow-hidden rounded-3xl"
           >
-            <img src={d.image} alt={d.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-            <div className="absolute inset-x-5 bottom-5">
-              <div className="text-[11px] font-medium uppercase tracking-widest text-primary">{d.category}</div>
-              <div className="font-display text-2xl font-bold">{d.name}</div>
-              <div className="text-xs text-white/70">{d.country}</div>
-            </div>
+            <Link
+              to="/auth"
+              className="group relative block aspect-[5/6] overflow-hidden rounded-3xl"
+            >
+              <img src={d.image} alt={d.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+              <div className="absolute inset-x-5 bottom-5">
+                <div className="text-[11px] font-medium uppercase tracking-widest text-primary">{d.category}</div>
+                <div className="font-display text-2xl font-bold">{d.name}</div>
+                <div className="text-xs text-white/70">{d.country}</div>
+              </div>
+            </Link>
           </motion.div>
         ))}
       </div>
@@ -221,7 +225,7 @@ function Testimonials() {
     { q: "I asked for 'quiet, food-first, non-touristy Rome' and it delivered exactly that.", a: "Ana R.", r: "Rome, 2025" },
   ];
   return (
-    <section className="mx-auto max-w-7xl px-4 py-24">
+    <section id="reviews" className="mx-auto max-w-7xl px-4 py-24">
       <div className="mx-auto max-w-2xl text-center">
         <div className="inline-flex rounded-full glass px-3 py-1 text-xs font-medium">Loved by travelers</div>
         <h2 className="mt-4 font-display text-4xl font-bold">Real trips, planned smarter.</h2>
