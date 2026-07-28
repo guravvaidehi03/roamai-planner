@@ -42,6 +42,8 @@ export function Navbar({ authed = false }: Props) {
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
             <a href="#features" className="hover:text-foreground">Features</a>
             <a href="#destinations" className="hover:text-foreground">Destinations</a>
+            <a href="#how" className="hover:text-foreground">How it works</a>
+            <a href="#reviews" className="hover:text-foreground">Reviews</a>
             <a href="#faq" className="hover:text-foreground">FAQ</a>
           </nav>
         )}
