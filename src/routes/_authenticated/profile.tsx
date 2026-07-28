@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { LogOut, Mail, Save } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { CustomerLoginId } from "@/components/CustomerLoginId";
+import { TripLocationsMap } from "@/components/TripLocationsMap";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/profile")({
@@ -12,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/profile")({
 
 function Profile() {
   const navigate = useNavigate();
+  const [userId, setUserId] = useState("");
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [avatar, setAvatar] = useState("");
@@ -23,6 +26,7 @@ function Profile() {
     (async () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return;
+      setUserId(userData.user.id);
       setEmail(userData.user.email ?? "");
       const { data: prof } = await supabase.from("profiles").select("full_name,avatar").eq("id", userData.user.id).single();
       setFullName(prof?.full_name ?? "");
@@ -71,6 +75,12 @@ function Profile() {
           </div>
         </div>
 
+        {userId && (
+          <div className="mt-6">
+            <CustomerLoginId userId={userId} email={email} />
+          </div>
+        )}
+
         <div className="mt-6 space-y-4 rounded-3xl glass p-6">
           <Field label="Full name">
             <input value={fullName} onChange={(e) => setFullName(e.target.value)} className="fld" />
@@ -86,6 +96,10 @@ function Profile() {
               <LogOut className="h-4 w-4" /> Sign out
             </button>
           </div>
+        </div>
+
+        <div className="mt-6">
+          <TripLocationsMap />
         </div>
       </main>
 

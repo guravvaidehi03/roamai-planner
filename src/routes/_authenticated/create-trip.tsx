@@ -70,6 +70,23 @@ function CreateTrip() {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Not signed in");
 
+      // Geocode the destination to get coordinates
+      let latitude: number | null = null;
+      let longitude: number | null = null;
+      try {
+        const geoRes = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(destination)}`,
+          { headers: { Accept: "application/json" } }
+        );
+        const geoData = await geoRes.json();
+        if (geoData?.[0]) {
+          latitude = parseFloat(geoData[0].lat);
+          longitude = parseFloat(geoData[0].lon);
+        }
+      } catch {
+        /* non-fatal: geocoding failure shouldn't block trip creation */
+      }
+
       const { data: trip, error } = await supabase
         .from("trips")
         .insert({
@@ -84,11 +101,26 @@ function CreateTrip() {
           hotel_preference: hotel,
           ai_response: plan,
           image_url: image,
+          latitude,
+          longitude,
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      // Save trip location if coordinates are available
+      if (latitude !== null && longitude !== null) {
+        await supabase.from("trip_locations").insert({
+          user_id: userData.user.id,
+          trip_id: trip.id,
+          destination,
+          latitude,
+          longitude,
+          visited_at: new Date().toISOString(),
+        });
+      }
+
       toast.success("Trip plan ready! ✨");
       navigate({ to: "/trip/$id", params: { id: trip.id } });
     } catch (err) {

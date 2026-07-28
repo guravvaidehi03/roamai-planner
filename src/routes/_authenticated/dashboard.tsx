@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Search, Settings } from "lucide-react";
+import { Bell, Search, Settings, Fingerprint } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { DestinationCard } from "@/components/DestinationCard";
 import { CATEGORIES, DESTINATIONS } from "@/lib/destinations";
@@ -14,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function Dashboard() {
   const [name, setName] = useState<string>("Traveler");
+  const [loginId, setLoginId] = useState<string>("");
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("All");
   const [query, setQuery] = useState("");
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
@@ -23,6 +24,7 @@ function Dashboard() {
       const meta = data.user?.user_metadata as Record<string, string> | undefined;
       const n = meta?.full_name || meta?.name || data.user?.email?.split("@")[0];
       if (n) setName(n.split(" ")[0]);
+      if (data.user?.id) setLoginId(data.user.id);
     });
     const stored = typeof window !== "undefined" ? window.localStorage.getItem("roamai:favs") : null;
     if (stored) setFavorites(new Set(JSON.parse(stored)));
@@ -57,6 +59,14 @@ function Dashboard() {
             <h1 className="mt-1 truncate font-display text-3xl font-bold sm:text-4xl">
               {name} <span className="text-gradient">👋</span>
             </h1>
+            {loginId && (
+              <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Fingerprint className="h-3 w-3" />
+                <span className="font-mono truncate max-w-[180px]" title={loginId}>
+                  ID: {loginId.slice(0, 8)}…{loginId.slice(-4)}
+                </span>
+              </div>
+            )}
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <IconBtn><Bell className="h-4 w-4" /></IconBtn>
