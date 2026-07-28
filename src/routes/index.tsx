@@ -23,11 +23,44 @@ function Landing() {
       <Navbar />
       <Hero />
       <Features />
+      <HowItWorks />
       <Popular />
       <Testimonials />
       <FAQ />
       <Footer />
     </div>
+  );
+}
+
+function HowItWorks() {
+  const steps = [
+    { n: "01", title: "Tell us your vibe", body: "Share destination, budget, days and interests." },
+    { n: "02", title: "AI drafts your plan", body: "A day-by-day itinerary tuned to your pace." },
+    { n: "03", title: "Explore & save", body: "Map, weather, and save trips for later." },
+  ];
+  return (
+    <section id="how" className="mx-auto max-w-7xl px-4 py-16">
+      <div className="mx-auto max-w-2xl text-center">
+        <div className="inline-flex rounded-full glass px-3 py-1 text-xs font-medium">How it works</div>
+        <h2 className="mt-4 font-display text-4xl font-bold">Plan a trip in <span className="text-gradient">three steps</span>.</h2>
+      </div>
+      <div className="mt-12 grid gap-5 md:grid-cols-3">
+        {steps.map((s, i) => (
+          <motion.div
+            key={s.n}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.08 }}
+            className="rounded-3xl glass p-6"
+          >
+            <div className="font-display text-4xl font-black text-gradient">{s.n}</div>
+            <h3 className="mt-3 font-display text-lg font-bold">{s.title}</h3>
+            <p className="mt-2 text-sm text-muted-foreground">{s.body}</p>
+          </motion.div>
+        ))}
+      </div>
+    </section>
   );
 }
 
