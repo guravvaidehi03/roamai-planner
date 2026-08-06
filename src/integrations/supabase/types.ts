@@ -53,8 +53,6 @@ export type Database = {
           image_url: string | null
           interests: string[] | null
           is_favorite: boolean
-          latitude: number | null
-          longitude: number | null
           transport: string | null
           travelers: string | null
           trip_type: string | null
@@ -72,8 +70,6 @@ export type Database = {
           image_url?: string | null
           interests?: string[] | null
           is_favorite?: boolean
-          latitude?: number | null
-          longitude?: number | null
           transport?: string | null
           travelers?: string | null
           trip_type?: string | null
@@ -91,52 +87,11 @@ export type Database = {
           image_url?: string | null
           interests?: string[] | null
           is_favorite?: boolean
-          latitude?: number | null
-          longitude?: number | null
           transport?: string | null
           travelers?: string | null
           trip_type?: string | null
           updated_at?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      trip_locations: {
-        Row: {
-          id: string
-          user_id: string
-          trip_id: string
-          destination: string
-          latitude: number
-          longitude: number
-          visited_at: string | null
-          notes: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          trip_id: string
-          destination: string
-          latitude: number
-          longitude: number
-          visited_at?: string | null
-          notes?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          trip_id?: string
-          destination?: string
-          latitude?: number
-          longitude?: number
-          visited_at?: string | null
-          notes?: string | null
-          created_at?: string
-          updated_at?: string
         }
         Relationships: []
       }
