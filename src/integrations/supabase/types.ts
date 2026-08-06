@@ -41,6 +41,47 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_locations: {
+        Row: {
+          created_at: string
+          destination: string
+          id: string
+          latitude: number
+          longitude: number
+          trip_id: string | null
+          user_id: string
+          visited_at: string
+        }
+        Insert: {
+          created_at?: string
+          destination: string
+          id?: string
+          latitude: number
+          longitude: number
+          trip_id?: string | null
+          user_id: string
+          visited_at?: string
+        }
+        Update: {
+          created_at?: string
+          destination?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          trip_id?: string | null
+          user_id?: string
+          visited_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_locations_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trips: {
         Row: {
           ai_response: Json | null
@@ -53,6 +94,8 @@ export type Database = {
           image_url: string | null
           interests: string[] | null
           is_favorite: boolean
+          latitude: number | null
+          longitude: number | null
           transport: string | null
           travelers: string | null
           trip_type: string | null
@@ -70,6 +113,8 @@ export type Database = {
           image_url?: string | null
           interests?: string[] | null
           is_favorite?: boolean
+          latitude?: number | null
+          longitude?: number | null
           transport?: string | null
           travelers?: string | null
           trip_type?: string | null
@@ -87,6 +132,8 @@ export type Database = {
           image_url?: string | null
           interests?: string[] | null
           is_favorite?: boolean
+          latitude?: number | null
+          longitude?: number | null
           transport?: string | null
           travelers?: string | null
           trip_type?: string | null
