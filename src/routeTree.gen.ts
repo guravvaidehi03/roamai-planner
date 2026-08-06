@@ -16,6 +16,7 @@ import { Route as AuthenticatedSavedRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCreateTripRouteImport } from './routes/_authenticated/create-trip'
+import { Route as ApiPublicAicheckRouteImport } from './routes/api/public/aicheck'
 import { Route as AuthenticatedTripIdRouteImport } from './routes/_authenticated/trip.$id'
 
 const AuthRoute = AuthRouteImport.update({
@@ -52,6 +53,11 @@ const AuthenticatedCreateTripRoute = AuthenticatedCreateTripRouteImport.update({
   path: '/create-trip',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicAicheckRoute = ApiPublicAicheckRouteImport.update({
+  id: '/api/public/aicheck',
+  path: '/api/public/aicheck',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedTripIdRoute = AuthenticatedTripIdRouteImport.update({
   id: '/trip/$id',
   path: '/trip/$id',
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/saved': typeof AuthenticatedSavedRoute
   '/trip/$id': typeof AuthenticatedTripIdRoute
+  '/api/public/aicheck': typeof ApiPublicAicheckRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/saved': typeof AuthenticatedSavedRoute
   '/trip/$id': typeof AuthenticatedTripIdRoute
+  '/api/public/aicheck': typeof ApiPublicAicheckRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/saved': typeof AuthenticatedSavedRoute
   '/_authenticated/trip/$id': typeof AuthenticatedTripIdRoute
+  '/api/public/aicheck': typeof ApiPublicAicheckRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/saved'
     | '/trip/$id'
+    | '/api/public/aicheck'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/saved'
     | '/trip/$id'
+    | '/api/public/aicheck'
   id:
     | '__root__'
     | '/'
@@ -116,12 +127,14 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/saved'
     | '/_authenticated/trip/$id'
+    | '/api/public/aicheck'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicAicheckRoute: typeof ApiPublicAicheckRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -175,6 +188,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCreateTripRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/aicheck': {
+      id: '/api/public/aicheck'
+      path: '/api/public/aicheck'
+      fullPath: '/api/public/aicheck'
+      preLoaderRoute: typeof ApiPublicAicheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/trip/$id': {
       id: '/_authenticated/trip/$id'
       path: '/trip/$id'
@@ -208,17 +228,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicAicheckRoute: ApiPublicAicheckRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
