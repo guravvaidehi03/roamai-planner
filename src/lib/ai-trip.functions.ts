@@ -98,13 +98,16 @@ Rules:
       throw new Error("AI planner is temporarily unavailable.");
     }
 
-    const json = (await res.json()) as { choices: Array<{ message: { content: string } }> };
-    const content = json.choices?.[0]?.message?.content ?? "{}";
+    const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+    const raw = json.choices?.[0]?.message?.content ?? "";
+    const content = raw.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
     let parsed: TripPlan;
     try {
       parsed = JSON.parse(content) as TripPlan;
     } catch {
+      console.error("AI returned non-JSON content", raw.slice(0, 500));
       throw new Error("AI returned malformed plan. Please retry.");
     }
+
     return parsed;
   });
