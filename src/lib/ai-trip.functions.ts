@@ -36,8 +36,12 @@ export const generateTripPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("AI service unavailable");
+    const apiKey = process.env["LOVABLE_API_KEY"];
+    if (!apiKey) {
+      console.error("LOVABLE_API_KEY is not configured in the server runtime");
+      throw new Error("AI service is not configured yet. Please try again shortly.");
+    }
+
 
     const prompt = `You are RoamAI, an expert local travel planner. Generate a detailed, realistic, personalized travel plan.
 
