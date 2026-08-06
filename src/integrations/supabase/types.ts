@@ -41,6 +41,47 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_locations: {
+        Row: {
+          created_at: string
+          destination: string
+          id: string
+          latitude: number
+          longitude: number
+          trip_id: string | null
+          user_id: string
+          visited_at: string
+        }
+        Insert: {
+          created_at?: string
+          destination: string
+          id?: string
+          latitude: number
+          longitude: number
+          trip_id?: string | null
+          user_id: string
+          visited_at?: string
+        }
+        Update: {
+          created_at?: string
+          destination?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          trip_id?: string | null
+          user_id?: string
+          visited_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_locations_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trips: {
         Row: {
           ai_response: Json | null
@@ -98,45 +139,6 @@ export type Database = {
           trip_type?: string | null
           updated_at?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      trip_locations: {
-        Row: {
-          id: string
-          user_id: string
-          trip_id: string
-          destination: string
-          latitude: number
-          longitude: number
-          visited_at: string | null
-          notes: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          trip_id: string
-          destination: string
-          latitude: number
-          longitude: number
-          visited_at?: string | null
-          notes?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          trip_id?: string
-          destination?: string
-          latitude?: number
-          longitude?: number
-          visited_at?: string | null
-          notes?: string | null
-          created_at?: string
-          updated_at?: string
         }
         Relationships: []
       }
