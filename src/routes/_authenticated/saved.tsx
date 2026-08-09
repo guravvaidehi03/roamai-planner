@@ -94,7 +94,7 @@ function Saved() {
                     </div>
                     <button
                       onClick={(e) => { e.stopPropagation(); del(t.id); }}
-                      className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/5 text-destructive hover:bg-white/10"
+                      className="grid h-9 w-9 place-items-center rounded-full border border-border bg-muted text-destructive hover:bg-secondary"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

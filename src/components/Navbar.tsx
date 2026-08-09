@@ -52,7 +52,7 @@ export function Navbar({ authed = false }: Props) {
           <button
             onClick={signOut}
             title={email ?? ""}
-            className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm hover:bg-white/10"
+            className="flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1.5 text-sm hover:bg-secondary"
           >
             <LogOut className="h-4 w-4" />
             <span className="hidden sm:inline">Sign out</span>
@@ -74,7 +74,7 @@ function NavItem({ to, icon, label }: { to: string; icon: React.ReactNode; label
   return (
     <Link
       to={to}
-      className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm text-muted-foreground transition hover:bg-white/5 hover:text-foreground [&.active]:bg-white/10 [&.active]:text-foreground"
+      className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground [&.active]:bg-secondary [&.active]:text-foreground"
       activeProps={{ className: "active" }}
     >
       {icon}

@@ -12,6 +12,13 @@ export const Route = createFileRoute("/_authenticated/trip/$id")({
   component: TripDetails,
 });
 
+const FALLBACK_COVERS = [
+  "https://images.unsplash.com/photo-1506929562872-bb4190002468?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=80",
+];
+
 type Trip = {
   id: string;
   destination: string;
@@ -93,7 +100,11 @@ function TripDetails() {
     <div className="min-h-screen gradient-hero pb-20">
       <Navbar authed />
       <div className="relative h-[52vh] w-full overflow-hidden">
-        <img src={trip.image_url ?? ""} alt={trip.destination} className="h-full w-full object-cover" />
+        <img
+          src={trip.image_url ?? FALLBACK_COVERS[trip.destination.length % FALLBACK_COVERS.length]}
+          alt={trip.destination}
+          className="h-full w-full bg-secondary object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/20 to-background" />
         <div className="absolute inset-x-0 bottom-8 mx-auto max-w-6xl px-4">
           <button onClick={() => navigate({ to: "/saved" })} className="mb-4 inline-flex items-center gap-2 rounded-full glass px-3 py-1.5 text-xs">
@@ -128,7 +139,7 @@ function TripDetails() {
                   initial={{ opacity: 0, x: -12 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
-                  className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+                  className="rounded-2xl border border-border bg-muted p-5"
                 >
                   <div className="flex items-center gap-3">
                     <div className="grid h-9 w-9 place-items-center rounded-xl gradient-primary text-sm font-bold text-primary-foreground">
@@ -164,7 +175,7 @@ function TripDetails() {
 
             {mapSrc && (
               <div className="overflow-hidden rounded-3xl glass">
-                <div className="flex items-center gap-2 border-b border-white/5 p-4 text-sm">
+                <div className="flex items-center gap-2 border-b border-border p-4 text-sm">
                   <MapPin className="h-4 w-4 text-primary" /> Location
                 </div>
                 <iframe title="map" src={mapSrc} className="h-64 w-full" />
@@ -177,7 +188,7 @@ function TripDetails() {
               </div>
               <ul className="mt-4 space-y-2 text-sm">
                 {plan.budget_breakdown?.map((b) => (
-                  <li key={b.category} className="flex justify-between border-b border-white/5 pb-2 last:border-0">
+                  <li key={b.category} className="flex justify-between border-b border-border pb-2 last:border-0">
                     <span className="text-muted-foreground">{b.category}</span>
                     <span className="font-semibold text-primary">{b.amount}</span>
                   </li>
@@ -205,7 +216,7 @@ function TripDetails() {
 
 function TimeSlot({ label, text }: { label: string; text: string }) {
   return (
-    <div className="rounded-xl bg-white/5 p-3">
+    <div className="rounded-xl bg-muted p-3">
       <div className="text-[10px] font-semibold uppercase tracking-widest text-primary">{label}</div>
       <div className="mt-1 text-xs text-foreground/90">{text}</div>
     </div>
@@ -218,7 +229,7 @@ function ListCard({ icon, title, items }: { icon: React.ReactNode; title: string
       <div className="flex items-center gap-2 text-sm text-muted-foreground">{icon} {title}</div>
       <ul className="mt-4 space-y-3">
         {items.map((i, idx) => (
-          <li key={idx} className="border-b border-white/5 pb-3 last:border-0">
+          <li key={idx} className="border-b border-border pb-3 last:border-0">
             <div className="font-medium">{i.t}</div>
             <div className="mt-0.5 text-xs text-muted-foreground">{i.s}</div>
           </li>

@@ -56,7 +56,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           >
             Try again
           </button>
-          <a href="/" className="rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium">
+          <a href="/" className="rounded-full border border-border bg-muted px-5 py-2.5 text-sm font-medium">
             Go home
           </a>
         </div>
@@ -73,7 +73,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "RoamAI — AI Local Travel Planner" },
       { name: "description", content: "Unlock the world around you. Discover nearby destinations, generate AI-powered travel plans, and explore your next adventure." },
       { name: "author", content: "RoamAI" },
-      { name: "theme-color", content: "#0B0F19" },
+      { name: "theme-color", content: "#F8F0E5" },
       { property: "og:title", content: "RoamAI — AI Local Travel Planner" },
       { property: "og:description", content: "Generate personalised trips with AI, discover nearby attractions and craft unforgettable itineraries." },
       { property: "og:type", content: "website" },
@@ -86,7 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=DM+Sans:wght@400;500;600;700&display=swap",
       },
     ],
   }),
@@ -115,7 +115,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-      <Toaster theme="dark" position="top-center" richColors />
+      <Toaster theme="light" position="top-center" richColors />
     </QueryClientProvider>
   );
 }

@@ -47,7 +47,7 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created! Check your email if confirmation is required.");
+        toast.success("Account created — welcome aboard!");
         navigate({ to: "/dashboard" });
       } else if (mode === "login") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -122,7 +122,7 @@ function AuthPage() {
               onClick={signInGoogle}
               disabled={loading}
               type="button"
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 py-3 text-sm font-medium transition hover:bg-white/10 disabled:opacity-50"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-muted py-3 text-sm font-medium transition hover:bg-secondary disabled:opacity-50"
             >
               <FcGoogle className="h-5 w-5" /> Continue with Google
             </button>
@@ -130,7 +130,7 @@ function AuthPage() {
 
           {mode !== "forgot" && (
             <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-              <div className="h-px flex-1 bg-white/10" /> or <div className="h-px flex-1 bg-white/10" />
+              <div className="h-px flex-1 bg-secondary" /> or <div className="h-px flex-1 bg-secondary" />
             </div>
           )}
 
@@ -182,14 +182,16 @@ function AuthPage() {
         .input {
           width: 100%;
           border-radius: 1rem;
-          background: color-mix(in oklab, white 4%, transparent);
-          border: 1px solid color-mix(in oklab, white 10%, transparent);
+          background: var(--color-card);
+          border: 1px solid var(--color-input);
           padding: 0.75rem 1rem;
           color: inherit;
           outline: none;
           transition: border-color .2s, background .2s;
         }
-        .input:focus { border-color: var(--color-primary); background: color-mix(in oklab, white 6%, transparent); }
+        .input.pl-10 { padding-left: 2.75rem; }
+        .input::placeholder { color: var(--color-muted-foreground); }
+        .input:focus { border-color: var(--color-primary); background: var(--color-card); }
       `}</style>
     </div>
   );

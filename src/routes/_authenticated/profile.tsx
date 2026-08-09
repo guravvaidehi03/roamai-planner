@@ -69,8 +69,8 @@ function Profile() {
               <Mail className="h-3.5 w-3.5" /> <span className="truncate">{email}</span>
             </div>
             <div className="mt-3 flex gap-4 text-xs">
-              <span className="rounded-full bg-white/5 px-3 py-1"><b className="text-primary">{tripsCount}</b> trips created</span>
-              <span className="rounded-full bg-white/5 px-3 py-1"><b className="text-primary">{favCount}</b> favorites</span>
+              <span className="rounded-full bg-muted px-3 py-1"><b className="text-primary">{tripsCount}</b> trips created</span>
+              <span className="rounded-full bg-muted px-3 py-1"><b className="text-primary">{favCount}</b> favorites</span>
             </div>
           </div>
         </div>
@@ -92,7 +92,7 @@ function Profile() {
             <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 rounded-full gradient-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50">
               <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save changes"}
             </button>
-            <button onClick={logout} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium hover:bg-white/10">
+            <button onClick={logout} className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-5 py-2.5 text-sm font-medium hover:bg-secondary">
               <LogOut className="h-4 w-4" /> Sign out
             </button>
           </div>

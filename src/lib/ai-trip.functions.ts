@@ -36,10 +36,10 @@ export const generateTripPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }) => {
-    const apiKey = process.env["LOVABLE_API_KEY"];
+    const apiKey = process.env["GROQ_API_KEY"];
     if (!apiKey) {
-      console.error("LOVABLE_API_KEY is not configured in the server runtime");
-      throw new Error("AI service is not configured yet. Please try again shortly.");
+      console.error("GROQ_API_KEY is not configured in the server runtime");
+      throw new Error("AI service is not configured yet. Please add your Groq API key.");
     }
 
 
@@ -74,27 +74,29 @@ Rules:
 - recommended_places: 6 items. restaurants: 5. hotels: 4. budget_breakdown: 5. travel_tips: 6. packing_list: 8. emergency_tips: 4.
 - Use real place names for ${data.destination}. Be specific.`;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Lovable-API-Key": apiKey,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-3.6-flash",
+        model: "llama-3.3-70b-versatile",
         messages: [
           { role: "system", content: "You are a professional travel planner. Always respond with valid JSON only, no markdown fences." },
           { role: "user", content: prompt },
         ],
+        temperature: 0.7,
+        max_tokens: 8000,
         response_format: { type: "json_object" },
       }),
     });
 
     if (!res.ok) {
       const text = await res.text();
-      console.error("AI gateway error", res.status, text);
+      console.error("Groq API error", res.status, text);
       if (res.status === 429) throw new Error("Too many requests — please try again in a moment.");
-      if (res.status === 402) throw new Error("AI credits exhausted for this workspace.");
+      if (res.status === 401) throw new Error("Invalid Groq API key. Please update it and retry.");
       throw new Error("AI planner is temporarily unavailable.");
     }
 

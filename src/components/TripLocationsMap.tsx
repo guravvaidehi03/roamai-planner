@@ -46,14 +46,14 @@ export function TripLocationsMap() {
   if (loading) {
     return (
       <div className="rounded-3xl glass p-6 animate-pulse">
-        <div className="h-64 rounded-2xl bg-white/5" />
+        <div className="h-64 rounded-2xl bg-muted" />
       </div>
     );
   }
 
   return (
     <div className="rounded-3xl glass overflow-hidden">
-      <div className="flex items-center justify-between border-b border-white/5 p-5">
+      <div className="flex items-center justify-between border-b border-border p-5">
         <div className="flex items-center gap-2">
           <Globe className="h-4 w-4 text-primary" />
           <h3 className="font-display font-semibold">My Trip Locations</h3>
@@ -93,7 +93,7 @@ export function TripLocationsMap() {
                   className={`flex w-full items-center gap-3 rounded-xl p-3 text-left transition ${
                     selectedLocation?.id === loc.id
                       ? "bg-primary/10 border border-primary/20"
-                      : "bg-white/5 hover:bg-white/10"
+                      : "bg-muted hover:bg-secondary"
                   }`}
                 >
                   <MapPin className="h-4 w-4 shrink-0 text-primary" />
@@ -110,7 +110,7 @@ export function TripLocationsMap() {
                     to="/trip/$id"
                     params={{ id: loc.trip_id }}
                     onClick={(e) => e.stopPropagation()}
-                    className="shrink-0 rounded-full bg-white/10 px-2 py-1 text-[10px] font-medium hover:bg-white/20"
+                    className="shrink-0 rounded-full bg-secondary px-2 py-1 text-[10px] font-medium hover:bg-secondary"
                   >
                     View
                   </Link>
