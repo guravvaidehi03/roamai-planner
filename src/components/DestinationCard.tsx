@@ -26,35 +26,35 @@ export function DestinationCard({ destination, favorited, onToggleFavorite }: Pr
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10" />
 
         <button
           onClick={(e) => {
             e.preventDefault();
             onToggleFavorite?.(destination.id);
           }}
-          className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full glass-strong text-foreground transition hover:scale-110"
+          className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur-md transition hover:scale-110"
           aria-label="Favorite"
         >
-          <Heart className={`h-4 w-4 ${favorited ? "fill-primary text-primary" : ""}`} />
+          <Heart className={`h-4 w-4 ${favorited ? "fill-red-500 text-red-500" : "text-white"}`} />
         </button>
 
-        <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full glass-strong px-2.5 py-1 text-xs font-semibold">
-          <Star className="h-3 w-3 fill-primary text-primary" />
+        <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
+          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
           {destination.rating}
         </div>
 
-        <div className="absolute inset-x-4 bottom-4">
-          <div className="mb-1 text-[11px] font-medium uppercase tracking-widest text-primary">
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-4 pt-10">
+          <div className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-amber-300">
             {destination.category}
           </div>
-          <h3 className="font-display text-2xl font-bold leading-tight text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]">
+          <h3 className="font-display text-2xl font-bold leading-tight text-white" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.9)" }}>
             {destination.name}
           </h3>
-          <p className="text-xs font-medium text-white/90 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">{destination.country}</p>
-          <p className="mt-2 line-clamp-2 text-xs text-white/85 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">{destination.description}</p>
+          <p className="text-xs font-medium text-white" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.9)" }}>{destination.country}</p>
+          <p className="mt-2 line-clamp-2 text-xs text-white/95" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.9)" }}>{destination.description}</p>
           <div className="mt-3 flex items-center justify-between">
-            <span className="flex items-center gap-1 text-xs font-medium text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+            <span className="flex items-center gap-1 text-xs font-semibold text-white" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.9)" }}>
               <Wallet className="h-3.5 w-3.5" /> {destination.budget}
             </span>
             <Link
