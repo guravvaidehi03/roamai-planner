@@ -48,13 +48,13 @@ export function DestinationCard({ destination, favorited, onToggleFavorite }: Pr
           <div className="mb-1 text-[11px] font-medium uppercase tracking-widest text-primary">
             {destination.category}
           </div>
-          <h3 className="font-display text-2xl font-bold leading-tight">
+          <h3 className="font-display text-2xl font-bold leading-tight text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]">
             {destination.name}
           </h3>
-          <p className="text-xs text-white/70">{destination.country}</p>
-          <p className="mt-2 line-clamp-2 text-xs text-white/60">{destination.description}</p>
+          <p className="text-xs font-medium text-white/90 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">{destination.country}</p>
+          <p className="mt-2 line-clamp-2 text-xs text-white/85 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">{destination.description}</p>
           <div className="mt-3 flex items-center justify-between">
-            <span className="flex items-center gap-1 text-xs text-white/80">
+            <span className="flex items-center gap-1 text-xs font-medium text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
               <Wallet className="h-3.5 w-3.5" /> {destination.budget}
             </span>
             <Link

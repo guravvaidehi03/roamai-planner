@@ -2,10 +2,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { ArrowLeft, Cloud, Heart, Loader2, MapPin, Trash2, Utensils, Wallet } from "lucide-react";
+import { ArrowLeft, Cloud, Heart, ImageOff, Loader2, MapPin, Trash2, Utensils, Wallet } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import type { TripPlan } from "@/lib/ai-trip.functions";
+import { fetchPlaceImages } from "@/lib/place-images";
 
 export const Route = createFileRoute("/_authenticated/trip/$id")({
   head: () => ({ meta: [{ title: "Trip — RoamAI" }, { name: "description", content: "Your AI-generated travel itinerary with map, weather and budget breakdown." }] }),
@@ -39,6 +40,8 @@ function TripDetails() {
   const [loading, setLoading] = useState(true);
   const [weather, setWeather] = useState<Weather>(null);
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const [placeImages, setPlaceImages] = useState<Record<string, string | null>>({});
+  const [imagesLoading, setImagesLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -48,8 +51,27 @@ function TripDetails() {
         navigate({ to: "/saved" });
         return;
       }
-      setTrip(data as unknown as Trip);
+      const t = data as unknown as Trip;
+      setTrip(t);
       setLoading(false);
+
+      // Fetch a real photo for each specific place in the itinerary + recommended list
+      const plan = t.ai_response;
+      const placeNames = new Set<string>();
+      plan?.itinerary?.forEach((d) => {
+        [d.morning, d.afternoon, d.evening].forEach((slot) => {
+          extractPlaceName(slot, d.title).forEach((n) => placeNames.add(n));
+        });
+      });
+      plan?.recommended_places?.forEach((p) => placeNames.add(p.name));
+      plan?.restaurants?.forEach((r) => placeNames.add(r.name));
+      plan?.hotels?.forEach((h) => placeNames.add(h.name));
+
+      if (placeNames.size > 0) {
+        const imgs = await fetchPlaceImages([...placeNames]);
+        setPlaceImages(imgs);
+      }
+      setImagesLoading(false);
 
       // Geocode + weather (free, no keys)
       try {
@@ -133,27 +155,40 @@ function TripDetails() {
           <section className="rounded-3xl glass p-6 lg:col-span-2">
             <h2 className="font-display text-2xl font-bold">Day-by-day itinerary</h2>
             <div className="mt-6 space-y-4">
-              {plan.itinerary?.map((d) => (
-                <motion.div
-                  key={d.day}
-                  initial={{ opacity: 0, x: -12 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  className="rounded-2xl border border-border bg-muted p-5"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="grid h-9 w-9 place-items-center rounded-xl gradient-primary text-sm font-bold text-primary-foreground">
-                      {d.day}
+              {plan.itinerary?.map((d) => {
+                const slotPhotos = [
+                  { label: "Morning", text: d.morning, name: extractPlaceName(d.morning, d.title)[0] },
+                  { label: "Afternoon", text: d.afternoon, name: extractPlaceName(d.afternoon, d.title)[0] },
+                  { label: "Evening", text: d.evening, name: extractPlaceName(d.evening, d.title)[0] },
+                ];
+                return (
+                  <motion.div
+                    key={d.day}
+                    initial={{ opacity: 0, x: -12 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    className="overflow-hidden rounded-2xl border border-border bg-muted"
+                  >
+                    <div className="flex items-center gap-3 p-5 pb-3">
+                      <div className="grid h-9 w-9 place-items-center rounded-xl gradient-primary text-sm font-bold text-primary-foreground">
+                        {d.day}
+                      </div>
+                      <h3 className="font-display font-semibold">{d.title}</h3>
                     </div>
-                    <h3 className="font-display font-semibold">{d.title}</h3>
-                  </div>
-                  <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
-                    <TimeSlot label="Morning" text={d.morning} />
-                    <TimeSlot label="Afternoon" text={d.afternoon} />
-                    <TimeSlot label="Evening" text={d.evening} />
-                  </div>
-                </motion.div>
-              ))}
+                    <div className="grid gap-3 p-5 pt-0 text-sm sm:grid-cols-3">
+                      {slotPhotos.map((slot) => (
+                        <PlacePhoto
+                          key={slot.label}
+                          label={slot.label}
+                          text={slot.text}
+                          image={slot.name ? placeImages[slot.name] : undefined}
+                          loading={imagesLoading}
+                        />
+                      ))}
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </section>
 
@@ -199,9 +234,9 @@ function TripDetails() {
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-3">
-          <ListCard icon={<MapPin className="h-4 w-4" />} title="Nearby attractions" items={plan.recommended_places?.map((p) => ({ t: p.name, s: p.why })) ?? []} />
-          <ListCard icon={<Utensils className="h-4 w-4" />} title="Restaurants" items={plan.restaurants?.map((p) => ({ t: p.name, s: `${p.cuisine} — ${p.note}` })) ?? []} />
-          <ListCard icon={<MapPin className="h-4 w-4" />} title="Hotels" items={plan.hotels?.map((p) => ({ t: p.name, s: `${p.area} · ${p.price_range}` })) ?? []} />
+          <PlaceListCard icon={<MapPin className="h-4 w-4" />} title="Nearby attractions" items={plan.recommended_places?.map((p) => ({ t: p.name, s: p.why, img: placeImages[p.name] })) ?? []} loading={imagesLoading} />
+          <PlaceListCard icon={<Utensils className="h-4 w-4" />} title="Restaurants" items={plan.restaurants?.map((p) => ({ t: p.name, s: `${p.cuisine} — ${p.note}`, img: placeImages[p.name] })) ?? []} loading={imagesLoading} />
+          <PlaceListCard icon={<MapPin className="h-4 w-4" />} title="Hotels" items={plan.hotels?.map((p) => ({ t: p.name, s: `${p.area} · ${p.price_range}`, img: placeImages[p.name] })) ?? []} loading={imagesLoading} />
         </div>
 
         <div className="mt-6 grid gap-6 md:grid-cols-3">
@@ -214,29 +249,67 @@ function TripDetails() {
   );
 }
 
-function TimeSlot({ label, text }: { label: string; text: string }) {
+function PlacePhoto({ label, text, image, loading }: { label: string; text: string; image?: string | null; loading: boolean }) {
   return (
-    <div className="rounded-xl bg-muted p-3">
-      <div className="text-[10px] font-semibold uppercase tracking-widest text-primary">{label}</div>
-      <div className="mt-1 text-xs text-foreground/90">{text}</div>
+    <div className="overflow-hidden rounded-xl bg-muted">
+      <div className="relative aspect-video w-full overflow-hidden">
+        {loading ? (
+          <div className="grid h-full w-full place-items-center bg-muted">
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          </div>
+        ) : image ? (
+          <img src={image} alt={label} loading="lazy" className="h-full w-full object-cover" />
+        ) : (
+          <div className="grid h-full w-full place-items-center bg-muted text-muted-foreground">
+            <ImageOff className="h-5 w-5" />
+          </div>
+        )}
+      </div>
+      <div className="p-3">
+        <div className="text-[10px] font-semibold uppercase tracking-widest text-primary">{label}</div>
+        <div className="mt-1 text-xs text-foreground/90">{text}</div>
+      </div>
     </div>
   );
 }
 
-function ListCard({ icon, title, items }: { icon: React.ReactNode; title: string; items: Array<{ t: string; s: string }> }) {
+function PlaceListCard({ icon, title, items, loading }: { icon: React.ReactNode; title: string; items: Array<{ t: string; s: string; img?: string | null }>; loading: boolean }) {
   return (
     <div className="rounded-3xl glass p-6">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">{icon} {title}</div>
-      <ul className="mt-4 space-y-3">
+      <ul className="mt-4 space-y-4">
         {items.map((i, idx) => (
-          <li key={idx} className="border-b border-border pb-3 last:border-0">
-            <div className="font-medium">{i.t}</div>
-            <div className="mt-0.5 text-xs text-muted-foreground">{i.s}</div>
+          <li key={idx} className="flex gap-3 border-b border-border pb-4 last:border-0 last:pb-0">
+            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-muted">
+              {loading ? (
+                <div className="grid h-full w-full place-items-center">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                </div>
+              ) : i.img ? (
+                <img src={i.img} alt={i.t} loading="lazy" className="h-full w-full object-cover" />
+              ) : (
+                <div className="grid h-full w-full place-items-center text-muted-foreground">
+                  <ImageOff className="h-4 w-4" />
+                </div>
+              )}
+            </div>
+            <div className="min-w-0">
+              <div className="font-medium">{i.t}</div>
+              <div className="mt-0.5 text-xs text-muted-foreground">{i.s}</div>
+            </div>
           </li>
         ))}
       </ul>
     </div>
   );
+}
+
+function extractPlaceName(slotText: string, dayTitle: string): string[] {
+  const text = `${dayTitle} ${slotText}`;
+  const match = text.match(/(?:at|visit|see|explore|head to|stop (?:at|by)|check out|dinner at|lunch at|breakfast at)\s+([A-Z][A-Za-z0-9'.\-]+(?:\s+[A-Z][A-Za-z0-9'.\-]+){0,3})/);
+  if (match) return [match[1].trim()];
+  const words = slotText.split(/\s+/).filter((w) => /^[A-Z][A-Za-z0-9'.\-]+$/.test(w) && w.length > 2);
+  return words.length > 0 ? [words.slice(0, 2).join(" ")] : [];
 }
 
 function TipsCard({ title, items }: { title: string; items?: string[] }) {
