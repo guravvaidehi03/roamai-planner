@@ -26,6 +26,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -38,22 +39,34 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${window.location.origin}/auth`,
             data: { full_name: fullName },
           },
         });
         if (error) throw error;
+
+        // With email confirmation enabled, signUp returns NO session.
+        // Never navigate to a protected route here — the auth gate would
+        // bounce straight back to /auth and look like "sign up did nothing".
+        if (!data.session) {
+          setNeedsConfirmation(true);
+          setMode("login");
+          toast.success("Account created — check your email to confirm, then sign in.");
+          return;
+        }
+
         toast.success("Account created — welcome aboard!");
-        navigate({ to: "/dashboard" });
+        await navigate({ to: "/dashboard", replace: true });
       } else if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        if (!data.session) throw new Error("Could not start a session. Please try again.");
         toast.success("Welcome back!");
-        navigate({ to: "/dashboard" });
+        await navigate({ to: "/dashboard", replace: true });
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password`,
@@ -63,10 +76,34 @@ function AuthPage() {
         setMode("login");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      if (/email not confirmed/i.test(message)) {
+        setNeedsConfirmation(true);
+        toast.error("Your email isn't confirmed yet. Check your inbox, or resend the link below.");
+      } else if (/invalid login credentials/i.test(message)) {
+        toast.error("Email or password is incorrect. If you just signed up, confirm your email first.");
+      } else {
+        toast.error(message);
+      }
     } finally {
       setLoading(false);
     }
+  }
+
+  async function resendConfirmation() {
+    if (!email) {
+      toast.error("Enter your email first.");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/auth` },
+    });
+    setLoading(false);
+    if (error) toast.error(error.message);
+    else toast.success("Confirmation email sent.");
   }
 
   async function signInGoogle() {
@@ -165,6 +202,17 @@ function AuthPage() {
               {loading ? "Please wait…" : mode === "login" ? "Sign in" : mode === "signup" ? "Create account" : "Send reset link"}
             </button>
           </form>
+          {needsConfirmation && mode === "login" && (
+            <button
+              type="button"
+              onClick={resendConfirmation}
+              disabled={loading}
+              className="mt-3 w-full rounded-2xl border border-border py-2.5 text-xs font-medium text-muted-foreground transition hover:bg-secondary disabled:opacity-50"
+            >
+              Resend confirmation email
+            </button>
+          )}
+
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
             {mode === "login" ? (

@@ -36,11 +36,14 @@ export const generateTripPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }) => {
-    const apiKey = process.env["GROQ_API_KEY"];
+    const apiKey = (process.env["GROQ_API_KEY"] ?? process.env["VITE_GROQ_API_KEY"] ?? "").trim();
     if (!apiKey) {
       console.error("GROQ_API_KEY is not configured in the server runtime");
-      throw new Error("AI service is not configured yet. Please add your Groq API key.");
+      throw new Error(
+        "AI service is not configured: the GROQ_API_KEY secret is missing on the server.",
+      );
     }
+    const model = (process.env["GROQ_MODEL"] ?? "llama-3.3-70b-versatile").trim();
 
 
     const prompt = `You are RoamAI, an expert local travel planner. Generate a detailed, realistic, personalized travel plan.
@@ -81,7 +84,7 @@ Rules:
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model,
         messages: [
           { role: "system", content: "You are a professional travel planner. Always respond with valid JSON only, no markdown fences." },
           { role: "user", content: prompt },
@@ -96,8 +99,19 @@ Rules:
       const text = await res.text();
       console.error("Groq API error", res.status, text);
       if (res.status === 429) throw new Error("Too many requests — please try again in a moment.");
-      if (res.status === 401) throw new Error("Invalid Groq API key. Please update it and retry.");
-      throw new Error("AI planner is temporarily unavailable.");
+      if (res.status === 401 || res.status === 403)
+        throw new Error("Invalid or unauthorized Groq API key. Please update the GROQ_API_KEY secret.");
+      let detail = text.slice(0, 300);
+      try {
+        const parsedErr = JSON.parse(text) as { error?: { message?: string } };
+        if (parsedErr.error?.message) detail = parsedErr.error.message;
+      } catch {
+        // keep raw text
+      }
+      if (res.status === 404 || /decommissioned|does not exist|model_not_found/i.test(detail)) {
+        throw new Error(`Groq model "${model}" is unavailable: ${detail}`);
+      }
+      throw new Error(`AI planner failed (${res.status}): ${detail}`);
     }
 
     const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
