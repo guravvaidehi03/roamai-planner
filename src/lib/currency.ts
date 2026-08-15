@@ -1,4 +1,11 @@
-const USD_TO_INR = 83;
+export type Currency = "INR" | "USD";
+
+export const USD_TO_INR = 83;
+
+export const CURRENCY_SYMBOL: Record<Currency, string> = {
+  INR: "₹",
+  USD: "$",
+};
 
 function groupIndian(value: number): string {
   const s = Math.round(value).toString();
@@ -14,21 +21,42 @@ function groupIndian(value: number): string {
   return `${parts.join(",")},${tail}`;
 }
 
+function groupWestern(value: number): string {
+  return Math.round(value).toLocaleString("en-US");
+}
+
+export function formatMoney(amount: number, currency: Currency): string {
+  return currency === "INR"
+    ? `₹${groupIndian(amount)}`
+    : `$${groupWestern(amount)}`;
+}
+
 export function formatINR(value: number): string {
-  return `₹${groupIndian(value)}`;
+  return formatMoney(value, "INR");
 }
 
 /**
- * Displays any money string in Indian Rupees.
- * Legacy/AI values written in dollars are converted at a fixed rate;
- * values already in ₹ are returned untouched.
+ * Rewrites every money value inside a free-form string (e.g. "₹8,000 - ₹12,000
+ * per night") into the requested currency. Values already in the target
+ * currency are left untouched apart from consistent grouping.
  */
-export function toINR(text: string | null | undefined): string {
+export function convertMoneyText(
+  text: string | null | undefined,
+  currency: Currency = "INR",
+): string {
   if (!text) return "";
-  if (!text.includes("$")) return text;
-  return text.replace(/\$\s?([\d,]+(?:\.\d+)?)/g, (_m, num: string) => {
-    const amount = parseFloat(num.replace(/,/g, ""));
-    if (Number.isNaN(amount)) return _m;
-    return formatINR(amount * USD_TO_INR);
-  }).replace(/\bUSD\b/g, "INR");
+  return text
+    .replace(/([₹$])\s?([\d,]+(?:\.\d+)?)/g, (match, symbol: string, num: string) => {
+      const parsed = parseFloat(num.replace(/,/g, ""));
+      if (Number.isNaN(parsed)) return match;
+      const inr = symbol === "₹" ? parsed : parsed * USD_TO_INR;
+      const value = currency === "INR" ? inr : inr / USD_TO_INR;
+      return formatMoney(value, currency);
+    })
+    .replace(/\b(USD|INR)\b/g, currency);
+}
+
+/** Legacy helper: always renders in Indian Rupees. */
+export function toINR(text: string | null | undefined): string {
+  return convertMoneyText(text, "INR");
 }

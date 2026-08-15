@@ -2,6 +2,7 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { Compass, LogOut, Map, PlusCircle, Sparkles, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
+import { CurrencyToggle } from "@/components/CurrencyToggle";
 
 type Props = { authed?: boolean };
 
@@ -48,6 +49,8 @@ export function Navbar({ authed = false }: Props) {
           </nav>
         )}
 
+        <div className="flex items-center gap-2">
+          <CurrencyToggle />
         {authed ? (
           <button
             onClick={signOut}
@@ -65,6 +68,7 @@ export function Navbar({ authed = false }: Props) {
             Get Started
           </Link>
         )}
+        </div>
       </div>
     </header>
   );
