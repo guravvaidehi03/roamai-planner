@@ -30,7 +30,7 @@ function CreateTrip() {
 
   const [destination, setDestination] = useState(search.destination ?? "");
   const [days, setDays] = useState(5);
-  const [budget, setBudget] = useState("$1,500");
+  const [budget, setBudget] = useState("₹1,25,000");
   const [travelers, setTravelers] = useState("2");
   const [tripType, setTripType] = useState("Couple");
   const [transport, setTransport] = useState("Flight");
@@ -155,7 +155,7 @@ function CreateTrip() {
               <input type="number" min={1} max={30} value={days} onChange={(e) => setDays(Number(e.target.value))} className="fld" />
             </Field>
             <Field label="Budget">
-              <input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="$1,500" className="fld" />
+              <input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="₹1,25,000" className="fld" />
             </Field>
             <Field label="Travelers">
               <input value={travelers} onChange={(e) => setTravelers(e.target.value)} placeholder="2" className="fld" />

@@ -66,7 +66,7 @@ Return a JSON object matching this exact schema:
   "recommended_places": [{ "name": "...", "type": "landmark|museum|park|viewpoint", "why": "..." }],
   "restaurants": [{ "name": "...", "cuisine": "...", "note": "..." }],
   "hotels": [{ "name": "...", "area": "...", "price_range": "..." }],
-  "budget_breakdown": [{ "category": "Accommodation|Food|Transport|Activities|Misc", "amount": "$...", "note": "..." }],
+  "budget_breakdown": [{ "category": "Accommodation|Food|Transport|Activities|Misc", "amount": "₹...", "note": "..." }],
   "travel_tips": ["..."],
   "packing_list": ["..."],
   "emergency_tips": ["..."]
@@ -75,7 +75,8 @@ Return a JSON object matching this exact schema:
 Rules:
 - itinerary must contain exactly ${data.days} entries.
 - recommended_places: 6 items. restaurants: 5. hotels: 4. budget_breakdown: 5. travel_tips: 6. packing_list: 8. emergency_tips: 4.
-- Use real place names for ${data.destination}. Be specific.`;
+- Use real place names for ${data.destination}. Be specific.
+- All monetary values (budget_breakdown amounts and hotel price_range) MUST be in Indian Rupees using the ₹ symbol with Indian digit grouping (e.g. "₹1,25,000", "₹8,000 - ₹12,000 per night"). Never use $, USD, EUR or any other currency.`;
 
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",

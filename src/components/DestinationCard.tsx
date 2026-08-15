@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Heart, Star, Wallet } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import type { Destination } from "@/lib/destinations";
+import { toINR } from "@/lib/currency";
 
 type Props = {
   destination: Destination;
@@ -55,7 +56,7 @@ export function DestinationCard({ destination, favorited, onToggleFavorite }: Pr
           <p className="mt-2 line-clamp-2 text-xs text-white/95" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.9)" }}>{destination.description}</p>
           <div className="mt-3 flex items-center justify-between">
             <span className="flex items-center gap-1 text-xs font-semibold text-white" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.9)" }}>
-              <Wallet className="h-3.5 w-3.5" /> {destination.budget}
+              <Wallet className="h-3.5 w-3.5" /> {toINR(destination.budget)}
             </span>
             <Link
               to="/create-trip"

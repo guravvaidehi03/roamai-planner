@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Calendar, Heart, Loader2, MapPin, Plus, Trash2, Wallet } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
+import { toINR } from "@/lib/currency";
 
 export const Route = createFileRoute("/_authenticated/saved")({
   head: () => ({ meta: [{ title: "My Trips — RoamAI" }, { name: "description", content: "All your saved AI-generated travel plans in one place." }] }),
@@ -101,7 +102,7 @@ function Saved() {
                   </div>
                   <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
                     <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(t.created_at).toLocaleDateString()}</span>
-                    {t.budget && <span className="flex items-center gap-1"><Wallet className="h-3 w-3" /> {t.budget}</span>}
+                    {t.budget && <span className="flex items-center gap-1"><Wallet className="h-3 w-3" /> {toINR(t.budget)}</span>}
                   </div>
                 </div>
               </motion.article>

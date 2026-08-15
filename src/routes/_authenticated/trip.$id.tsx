@@ -7,6 +7,7 @@ import { Navbar } from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import type { TripPlan } from "@/lib/ai-trip.functions";
 import { fetchPlaceImages } from "@/lib/place-images";
+import { toINR } from "@/lib/currency";
 
 export const Route = createFileRoute("/_authenticated/trip/$id")({
   head: () => ({ meta: [{ title: "Trip — RoamAI" }, { name: "description", content: "Your AI-generated travel itinerary with map, weather and budget breakdown." }] }),
@@ -225,7 +226,7 @@ function TripDetails() {
                 {plan.budget_breakdown?.map((b) => (
                   <li key={b.category} className="flex justify-between border-b border-border pb-2 last:border-0">
                     <span className="text-muted-foreground">{b.category}</span>
-                    <span className="font-semibold text-primary">{b.amount}</span>
+                    <span className="font-semibold text-primary">{toINR(b.amount)}</span>
                   </li>
                 ))}
               </ul>
@@ -236,7 +237,7 @@ function TripDetails() {
         <div className="mt-6 grid gap-6 lg:grid-cols-3">
           <PlaceListCard icon={<MapPin className="h-4 w-4" />} title="Nearby attractions" items={plan.recommended_places?.map((p) => ({ t: p.name, s: p.why, img: placeImages[p.name] })) ?? []} loading={imagesLoading} />
           <PlaceListCard icon={<Utensils className="h-4 w-4" />} title="Restaurants" items={plan.restaurants?.map((p) => ({ t: p.name, s: `${p.cuisine} — ${p.note}`, img: placeImages[p.name] })) ?? []} loading={imagesLoading} />
-          <PlaceListCard icon={<MapPin className="h-4 w-4" />} title="Hotels" items={plan.hotels?.map((p) => ({ t: p.name, s: `${p.area} · ${p.price_range}`, img: placeImages[p.name] })) ?? []} loading={imagesLoading} />
+          <PlaceListCard icon={<MapPin className="h-4 w-4" />} title="Hotels" items={plan.hotels?.map((p) => ({ t: p.name, s: `${p.area} · ${toINR(p.price_range)}`, img: placeImages[p.name] })) ?? []} loading={imagesLoading} />
         </div>
 
         <div className="mt-6 grid gap-6 md:grid-cols-3">
