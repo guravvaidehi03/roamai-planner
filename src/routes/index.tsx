@@ -140,7 +140,7 @@ function Hero() {
             </div>
             <div className="mt-3 flex items-center justify-between text-xs">
               <span className="flex items-center gap-1 text-primary"><Star className="h-3 w-3 fill-primary" /> 4.9</span>
-              <span className="flex items-center gap-1 text-muted-foreground"><Wallet className="h-3 w-3" /> $1,800</span>
+              <span className="flex items-center gap-1 text-muted-foreground"><Wallet className="h-3 w-3" /> ₹1,49,000</span>
             </div>
           </motion.div>
 
