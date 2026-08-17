@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Calendar, Heart, Loader2, MapPin, Plus, Trash2, Wallet } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { SmartImage } from "@/components/SmartImage";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrency } from "@/lib/currency-context";
 
@@ -78,7 +79,7 @@ function Saved() {
                 className="group cursor-pointer overflow-hidden rounded-3xl glass"
               >
                 <div className="relative aspect-[16/10] overflow-hidden">
-                  <img src={t.image_url ?? ""} alt={t.destination} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <SmartImage src={t.image_url} query={t.destination} destination={t.destination} alt={t.destination} aspectClassName="h-full w-full" className="transition-transform duration-700 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                   {t.is_favorite && (
                     <div className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full glass-strong">

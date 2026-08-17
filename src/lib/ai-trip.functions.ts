@@ -22,11 +22,20 @@ export type TripPlan = {
     morning: string;
     afternoon: string;
     evening: string;
+    /** Optional (newer plans): concrete places per slot, used for image lookup. */
+    places?: Array<{
+      slot?: "morning" | "afternoon" | "evening" | string;
+      name: string;
+      description?: string;
+      estimated_cost?: string;
+    }>;
   }>;
   recommended_places: Array<{ name: string; type: string; why: string }>;
   restaurants: Array<{ name: string; cuisine: string; note: string }>;
   hotels: Array<{ name: string; area: string; price_range: string }>;
   budget_breakdown: Array<{ category: string; amount: string; note: string }>;
+  /** Optional (newer plans): total trip cost in INR, equal to the breakdown sum. */
+  total_estimated_cost?: string;
   travel_tips: string[];
   packing_list: string[];
   emergency_tips: string[];
@@ -62,11 +71,17 @@ Return a JSON object matching this exact schema:
 {
   "summary": "2-3 sentence enticing overview of the trip",
   "best_time_to_visit": "one sentence",
-  "itinerary": [{ "day": 1, "title": "...", "morning": "...", "afternoon": "...", "evening": "..." }],
+  "itinerary": [{ "day": 1, "title": "...", "morning": "...", "afternoon": "...", "evening": "...",
+     "places": [
+       { "slot": "morning", "name": "Colosseum", "description": "...", "estimated_cost": "₹2,500" },
+       { "slot": "afternoon", "name": "Roman Forum", "description": "...", "estimated_cost": "₹1,500" },
+       { "slot": "evening", "name": "Trevi Fountain", "description": "...", "estimated_cost": "₹1,000" }
+     ] }],
   "recommended_places": [{ "name": "...", "type": "landmark|museum|park|viewpoint", "why": "..." }],
   "restaurants": [{ "name": "...", "cuisine": "...", "note": "..." }],
   "hotels": [{ "name": "...", "area": "...", "price_range": "..." }],
   "budget_breakdown": [{ "category": "Accommodation|Food|Transport|Activities|Misc", "amount": "₹...", "note": "..." }],
+  "total_estimated_cost": "₹...",
   "travel_tips": ["..."],
   "packing_list": ["..."],
   "emergency_tips": ["..."]
@@ -76,6 +91,8 @@ Rules:
 - itinerary must contain exactly ${data.days} entries.
 - recommended_places: 6 items. restaurants: 5. hotels: 4. budget_breakdown: 5. travel_tips: 6. packing_list: 8. emergency_tips: 4.
 - Use real place names for ${data.destination}. Be specific.
+- Every itinerary entry MUST include a "places" array with exactly one entry per slot (morning, afternoon, evening). "name" must be the real, searchable proper name of the specific landmark/venue in ${data.destination} (e.g. "Colosseum", "Gateway of India") — never a generic phrase like "local market" or "the hotel".
+- "total_estimated_cost" MUST equal the exact sum of the budget_breakdown amounts, for the whole party of ${data.travelers} travellers over ${data.days} days, and must be realistic for Indian travellers with a ${data.budget} budget.
 - All monetary values (budget_breakdown amounts and hotel price_range) MUST be in Indian Rupees using the ₹ symbol with Indian digit grouping (e.g. "₹1,25,000", "₹8,000 - ₹12,000 per night"). Never use $, USD, EUR or any other currency.`;
 
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {

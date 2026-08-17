@@ -1,39 +1,25 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { convertMoneyText, type Currency } from "@/lib/currency";
-
-const STORAGE_KEY = "roamai:currency";
+import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { convertMoneyText, formatCurrency, type Currency } from "@/lib/currency";
 
 type CurrencyContextValue = {
   currency: Currency;
-  setCurrency: (c: Currency) => void;
-  toggleCurrency: () => void;
-  /** Formats any money string (or ₹/$ mixed text) in the active currency. */
+  /** Formats any money string (₹/$/€ mixed text) as Indian Rupees. */
   money: (text: string | null | undefined) => string;
+  /** Formats a numeric amount as Indian Rupees. */
+  format: (amount: number) => string;
 };
 
 const CurrencyContext = createContext<CurrencyContextValue | null>(null);
 
+/** The app is INR-only: every user-facing price is rendered in ₹. */
 export function CurrencyProvider({ children }: { children: ReactNode }) {
-  const [currency, setCurrencyState] = useState<Currency>("INR");
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === "USD" || stored === "INR") setCurrencyState(stored);
-  }, []);
-
-  const setCurrency = useCallback((c: Currency) => {
-    setCurrencyState(c);
-    window.localStorage.setItem(STORAGE_KEY, c);
-  }, []);
-
   const value = useMemo<CurrencyContextValue>(
     () => ({
-      currency,
-      setCurrency,
-      toggleCurrency: () => setCurrency(currency === "INR" ? "USD" : "INR"),
-      money: (text) => convertMoneyText(text, currency),
+      currency: "INR",
+      money: (text) => convertMoneyText(text, "INR"),
+      format: (amount) => formatCurrency(amount),
     }),
-    [currency, setCurrency],
+    [],
   );
 
   return <CurrencyContext.Provider value={value}>{children}</CurrencyContext.Provider>;

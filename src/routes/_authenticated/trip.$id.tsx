@@ -2,24 +2,18 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { ArrowLeft, Cloud, Heart, ImageOff, Loader2, MapPin, Trash2, Utensils, Wallet } from "lucide-react";
+import { ArrowLeft, Cloud, Heart, Loader2, MapPin, Trash2, Utensils, Wallet } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import type { TripPlan } from "@/lib/ai-trip.functions";
-import { fetchPlaceImages } from "@/lib/place-images";
+import { SmartImage } from "@/components/SmartImage";
 import { useCurrency } from "@/lib/currency-context";
+import { formatCurrency, parseMoneyToINR } from "@/lib/currency";
 
 export const Route = createFileRoute("/_authenticated/trip/$id")({
   head: () => ({ meta: [{ title: "Trip — RoamAI" }, { name: "description", content: "Your AI-generated travel itinerary with map, weather and budget breakdown." }] }),
   component: TripDetails,
 });
-
-const FALLBACK_COVERS = [
-  "https://images.unsplash.com/photo-1506929562872-bb4190002468?auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=80",
-];
 
 type Trip = {
   id: string;
@@ -42,8 +36,6 @@ function TripDetails() {
   const [loading, setLoading] = useState(true);
   const [weather, setWeather] = useState<Weather>(null);
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
-  const [placeImages, setPlaceImages] = useState<Record<string, string | null>>({});
-  const [imagesLoading, setImagesLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -56,24 +48,6 @@ function TripDetails() {
       const t = data as unknown as Trip;
       setTrip(t);
       setLoading(false);
-
-      // Fetch a real photo for each specific place in the itinerary + recommended list
-      const plan = t.ai_response;
-      const placeNames = new Set<string>();
-      plan?.itinerary?.forEach((d) => {
-        [d.morning, d.afternoon, d.evening].forEach((slot) => {
-          extractPlaceName(slot, d.title).forEach((n) => placeNames.add(n));
-        });
-      });
-      plan?.recommended_places?.forEach((p) => placeNames.add(p.name));
-      plan?.restaurants?.forEach((r) => placeNames.add(r.name));
-      plan?.hotels?.forEach((h) => placeNames.add(h.name));
-
-      if (placeNames.size > 0) {
-        const imgs = await fetchPlaceImages([...placeNames]);
-        setPlaceImages(imgs);
-      }
-      setImagesLoading(false);
 
       // Geocode + weather (free, no keys)
       try {
@@ -116,6 +90,12 @@ function TripDetails() {
   }
 
   const plan = trip.ai_response;
+  // Total always equals the sum of the displayed breakdown rows, so the numbers
+  // on screen are always mathematically consistent.
+  const totalCost =
+    plan.budget_breakdown?.reduce((sum, b) => sum + parseMoneyToINR(b.amount), 0) ||
+    parseMoneyToINR(plan.total_estimated_cost) ||
+    parseMoneyToINR(trip.budget);
   const mapSrc = coords
     ? `https://www.openstreetmap.org/export/embed.html?bbox=${coords.lon - 0.1}%2C${coords.lat - 0.08}%2C${coords.lon + 0.1}%2C${coords.lat + 0.08}&layer=mapnik&marker=${coords.lat}%2C${coords.lon}`
     : null;
@@ -124,10 +104,13 @@ function TripDetails() {
     <div className="min-h-screen gradient-hero pb-20">
       <Navbar authed />
       <div className="relative h-[52vh] w-full overflow-hidden">
-        <img
-          src={trip.image_url ?? FALLBACK_COVERS[trip.destination.length % FALLBACK_COVERS.length]}
+        <SmartImage
+          src={trip.image_url}
+          query={trip.destination}
+          destination={trip.destination}
           alt={trip.destination}
-          className="h-full w-full bg-secondary object-cover"
+          aspectClassName="h-full w-full"
+          eager
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/20 to-background" />
         <div className="absolute inset-x-0 bottom-8 mx-auto max-w-6xl px-4">
@@ -158,11 +141,18 @@ function TripDetails() {
             <h2 className="font-display text-2xl font-bold">Day-by-day itinerary</h2>
             <div className="mt-6 space-y-4">
               {plan.itinerary?.map((d) => {
-                const slotPhotos = [
-                  { label: "Morning", text: d.morning, name: extractPlaceName(d.morning, d.title)[0] },
-                  { label: "Afternoon", text: d.afternoon, name: extractPlaceName(d.afternoon, d.title)[0] },
-                  { label: "Evening", text: d.evening, name: extractPlaceName(d.evening, d.title)[0] },
-                ];
+                const slotPhotos = (["morning", "afternoon", "evening"] as const).map((slot) => {
+                  const aiPlace = d.places?.find(
+                    (pl) => (pl.slot ?? "").toLowerCase() === slot,
+                  );
+                  const text = d[slot];
+                  return {
+                    label: slot.charAt(0).toUpperCase() + slot.slice(1),
+                    text,
+                    name: aiPlace?.name?.trim() || extractPlaceName(text, d.title)[0] || trip.destination,
+                    cost: aiPlace?.estimated_cost,
+                  };
+                });
                 return (
                   <motion.div
                     key={d.day}
@@ -183,8 +173,9 @@ function TripDetails() {
                           key={slot.label}
                           label={slot.label}
                           text={slot.text}
-                          image={slot.name ? placeImages[slot.name] : undefined}
-                          loading={imagesLoading}
+                          place={slot.name}
+                          destination={trip.destination}
+                          cost={slot.cost ? money(slot.cost) : undefined}
                         />
                       ))}
                     </div>
@@ -223,22 +214,30 @@ function TripDetails() {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Wallet className="h-4 w-4" /> Budget breakdown
               </div>
+              <div className="mt-3">
+                <div className="text-xs uppercase tracking-widest text-muted-foreground">Estimated trip cost</div>
+                <div className="font-display text-3xl font-bold text-primary">{formatCurrency(totalCost)}</div>
+              </div>
               <ul className="mt-4 space-y-2 text-sm">
                 {plan.budget_breakdown?.map((b) => (
-                  <li key={b.category} className="flex justify-between border-b border-border pb-2 last:border-0">
+                  <li key={b.category} className="flex flex-wrap justify-between gap-2 border-b border-border pb-2 last:border-0">
                     <span className="text-muted-foreground">{b.category}</span>
-                    <span className="font-semibold text-primary">{money(b.amount)}</span>
+                    <span className="font-semibold text-primary">{formatCurrency(parseMoneyToINR(b.amount))}</span>
                   </li>
                 ))}
               </ul>
+              <div className="mt-3 flex flex-wrap justify-between gap-2 text-sm font-semibold">
+                <span>Total</span>
+                <span className="text-primary">{formatCurrency(totalCost)}</span>
+              </div>
             </div>
           </aside>
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-3">
-          <PlaceListCard icon={<MapPin className="h-4 w-4" />} title="Nearby attractions" items={plan.recommended_places?.map((p) => ({ t: p.name, s: p.why, img: placeImages[p.name] })) ?? []} loading={imagesLoading} />
-          <PlaceListCard icon={<Utensils className="h-4 w-4" />} title="Restaurants" items={plan.restaurants?.map((p) => ({ t: p.name, s: `${p.cuisine} — ${p.note}`, img: placeImages[p.name] })) ?? []} loading={imagesLoading} />
-          <PlaceListCard icon={<MapPin className="h-4 w-4" />} title="Hotels" items={plan.hotels?.map((p) => ({ t: p.name, s: `${p.area} · ${money(p.price_range)}`, img: placeImages[p.name] })) ?? []} loading={imagesLoading} />
+          <PlaceListCard icon={<MapPin className="h-4 w-4" />} title="Nearby attractions" items={plan.recommended_places?.map((p) => ({ t: p.name, s: p.why })) ?? []} destination={trip.destination} />
+          <PlaceListCard icon={<Utensils className="h-4 w-4" />} title="Restaurants" items={plan.restaurants?.map((p) => ({ t: p.name, s: `${p.cuisine} — ${p.note}` })) ?? []} destination={trip.destination} />
+          <PlaceListCard icon={<MapPin className="h-4 w-4" />} title="Hotels" items={plan.hotels?.map((p) => ({ t: p.name, s: `${p.area} · ${money(p.price_range)}` })) ?? []} destination={trip.destination} />
         </div>
 
         <div className="mt-6 grid gap-6 md:grid-cols-3">
@@ -251,49 +250,51 @@ function TripDetails() {
   );
 }
 
-function PlacePhoto({ label, text, image, loading }: { label: string; text: string; image?: string | null; loading: boolean }) {
+function PlacePhoto({
+  label,
+  text,
+  place,
+  destination,
+  cost,
+}: {
+  label: string;
+  text: string;
+  place: string;
+  destination: string;
+  cost?: string;
+}) {
   return (
     <div className="overflow-hidden rounded-xl bg-muted">
-      <div className="relative aspect-video w-full overflow-hidden">
-        {loading ? (
-          <div className="grid h-full w-full place-items-center bg-muted">
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-          </div>
-        ) : image ? (
-          <img src={image} alt={label} loading="lazy" className="h-full w-full object-cover" />
-        ) : (
-          <div className="grid h-full w-full place-items-center bg-muted text-muted-foreground">
-            <ImageOff className="h-5 w-5" />
-          </div>
-        )}
-      </div>
+      <SmartImage query={place} destination={destination} alt={place || label} aspectClassName="aspect-video w-full" />
       <div className="p-3">
         <div className="text-[10px] font-semibold uppercase tracking-widest text-primary">{label}</div>
+        {place && <div className="mt-1 text-sm font-semibold">{place}</div>}
         <div className="mt-1 text-xs text-foreground/90">{text}</div>
+        {cost && <div className="mt-2 text-xs font-semibold text-primary">Estimated cost — {cost}</div>}
       </div>
     </div>
   );
 }
 
-function PlaceListCard({ icon, title, items, loading }: { icon: React.ReactNode; title: string; items: Array<{ t: string; s: string; img?: string | null }>; loading: boolean }) {
+function PlaceListCard({
+  icon,
+  title,
+  items,
+  destination,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  items: Array<{ t: string; s: string }>;
+  destination: string;
+}) {
   return (
     <div className="rounded-3xl glass p-6">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">{icon} {title}</div>
       <ul className="mt-4 space-y-4">
         {items.map((i, idx) => (
           <li key={idx} className="flex gap-3 border-b border-border pb-4 last:border-0 last:pb-0">
-            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-muted">
-              {loading ? (
-                <div className="grid h-full w-full place-items-center">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-                </div>
-              ) : i.img ? (
-                <img src={i.img} alt={i.t} loading="lazy" className="h-full w-full object-cover" />
-              ) : (
-                <div className="grid h-full w-full place-items-center text-muted-foreground">
-                  <ImageOff className="h-4 w-4" />
-                </div>
-              )}
+            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg">
+              <SmartImage query={i.t} destination={destination} alt={i.t} aspectClassName="h-14 w-14" />
             </div>
             <div className="min-w-0">
               <div className="font-medium">{i.t}</div>

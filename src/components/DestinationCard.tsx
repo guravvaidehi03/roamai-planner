@@ -3,6 +3,7 @@ import { Heart, Star, Wallet } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import type { Destination } from "@/lib/destinations";
 import { useCurrency } from "@/lib/currency-context";
+import { SmartImage } from "@/components/SmartImage";
 
 type Props = {
   destination: Destination;
@@ -23,11 +24,13 @@ export function DestinationCard({ destination, favorited, onToggleFavorite }: Pr
       className="group relative overflow-hidden rounded-3xl glass"
     >
       <div className="relative aspect-[4/5] w-full overflow-hidden">
-        <img
+        <SmartImage
           src={destination.image}
+          query={`${destination.name} ${destination.country}`}
+          destination={destination.name}
           alt={destination.name}
-          loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+          aspectClassName="h-full w-full"
+          className="transition-transform duration-700 group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10" />
 

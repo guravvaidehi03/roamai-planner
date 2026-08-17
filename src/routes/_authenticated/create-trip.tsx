@@ -9,6 +9,7 @@ import { generateTripPlan } from "@/lib/ai-trip.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { DESTINATIONS } from "@/lib/destinations";
+import { resolveDestinationImage } from "@/lib/place-images";
 
 const searchSchema = z.object({ destination: z.string().optional() });
 
@@ -63,9 +64,11 @@ function CreateTrip() {
         },
       });
 
+      // NOTE: source.unsplash.com was retired and always failed — the cover is
+      // now resolved from a real image source for the actual destination.
       const image =
         DESTINATIONS.find((d) => d.name.toLowerCase() === destination.toLowerCase())?.image ??
-        `https://source.unsplash.com/1200x800/?${encodeURIComponent(destination + ",travel")}`;
+        (await resolveDestinationImage(destination));
 
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Not signed in");
