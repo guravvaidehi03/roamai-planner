@@ -73,24 +73,61 @@ export function parseMoneyToINR(text: string | null | undefined): number {
   return value * (RATES[symbol] ?? 1);
 }
 
+const WORD_RATES: Record<string, number> = {
+  usd: USD_TO_INR,
+  "us dollar": USD_TO_INR,
+  "us dollars": USD_TO_INR,
+  dollar: USD_TO_INR,
+  dollars: USD_TO_INR,
+  eur: EUR_TO_INR,
+  euro: EUR_TO_INR,
+  euros: EUR_TO_INR,
+  gbp: GBP_TO_INR,
+  inr: 1,
+  rs: 1,
+  rupee: 1,
+  rupees: 1,
+};
+
 /**
  * Rewrites every money value inside a free-form string (e.g. "$100 - $150 per
- * night") into Indian Rupees, converting non-INR values instead of relabelling
- * them, and normalising the grouping of values already in ₹.
+ * night", "USD 500", "around 300 dollars") into Indian Rupees, converting
+ * non-INR values instead of relabelling them, and normalising the grouping of
+ * values already in ₹.
  */
 export function convertMoneyText(
   text: string | null | undefined,
   _currency: Currency = "INR",
 ): string {
   if (!text) return "";
-  return text
+  let out = text
+    // Symbol-prefixed: "$100", "€50", "₹1,200"
     .replace(/([₹$€£])\s?([\d][\d,]*(?:\.\d+)?)/g, (match, symbol: string, num: string) => {
       const parsed = parseFloat(num.replace(/,/g, ""));
       if (Number.isNaN(parsed)) return match;
       return formatCurrency(parsed * (RATES[symbol] ?? 1));
     })
-    .replace(/\b(USD|US Dollars?|Dollars?|EUR|Euros?|GBP)\b/gi, "INR")
-    .replace(/\bINR\b/g, "INR");
+    // Word-prefixed: "USD 500", "around 300 dollars", "EUR 1,200"
+    .replace(
+      /\b(USD|US\s?Dollars?|Dollars?|EUR|Euros?|GBP|INR|Rs\.?|Rupees?)\s?([\d][\d,]*(?:\.\d+)?)/gi,
+      (match, word: string, num: string) => {
+        const parsed = parseFloat(num.replace(/,/g, ""));
+        if (Number.isNaN(parsed)) return match;
+        const rate = WORD_RATES[word.toLowerCase().replace(/\s+/g, " ").trim()] ?? 1;
+        return formatCurrency(parsed * rate);
+      },
+    )
+    // Suffix word: "500 USD", "1,200 dollars", "50 euros"
+    .replace(
+      /([\d][\d,]*(?:\.\d+)?)\s?(USD|US\s?Dollars?|Dollars?|EUR|Euros?|GBP|INR|Rs\.?|Rupees?)\b/gi,
+      (match, num: string, word: string) => {
+        const parsed = parseFloat(num.replace(/,/g, ""));
+        if (Number.isNaN(parsed)) return match;
+        const rate = WORD_RATES[word.toLowerCase().replace(/\s+/g, " ").trim()] ?? 1;
+        return formatCurrency(parsed * rate);
+      },
+    );
+  return out;
 }
 
 /** Legacy helper: always renders in Indian Rupees. */
