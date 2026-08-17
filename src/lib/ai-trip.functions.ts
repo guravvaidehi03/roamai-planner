@@ -52,7 +52,7 @@ export const generateTripPlan = createServerFn({ method: "POST" })
         "AI service is not configured: the GEMINI_API_KEY secret is missing on the server.",
       );
     }
-    const model = (process.env["GEMINI_MODEL"] ?? "gemini-2.5-flash").trim();
+    const model = (process.env["GEMINI_MODEL"] ?? "gemini-3.6-flash").trim();
 
 
     const prompt = `You are RoamAI, an expert local travel planner. Generate a detailed, realistic, personalized travel plan.
