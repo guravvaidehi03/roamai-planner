@@ -45,14 +45,14 @@ export const generateTripPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }) => {
-    const apiKey = (process.env["GROQ_API_KEY"] ?? process.env["VITE_GROQ_API_KEY"] ?? "").trim();
+    const apiKey = (process.env["GEMINI_API_KEY"] ?? process.env["GOOGLE_API_KEY"] ?? "").trim();
     if (!apiKey) {
-      console.error("GROQ_API_KEY is not configured in the server runtime");
+      console.error("GEMINI_API_KEY is not configured in the server runtime");
       throw new Error(
-        "AI service is not configured: the GROQ_API_KEY secret is missing on the server.",
+        "AI service is not configured: the GEMINI_API_KEY secret is missing on the server.",
       );
     }
-    const model = (process.env["GROQ_MODEL"] ?? "llama-3.3-70b-versatile").trim();
+    const model = (process.env["GEMINI_MODEL"] ?? "gemini-2.5-flash").trim();
 
 
     const prompt = `You are RoamAI, an expert local travel planner. Generate a detailed, realistic, personalized travel plan.
@@ -95,30 +95,38 @@ Rules:
 - "total_estimated_cost" MUST equal the exact sum of the budget_breakdown amounts, for the whole party of ${data.travelers} travellers over ${data.days} days, and must be realistic for Indian travellers with a ${data.budget} budget.
 - All monetary values (budget_breakdown amounts and hotel price_range) MUST be in Indian Rupees using the ₹ symbol with Indian digit grouping (e.g. "₹1,25,000", "₹8,000 - ₹12,000 per night"). Never use $, USD, EUR or any other currency.`;
 
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [
+              {
+                text: "You are a professional travel planner. Always respond with valid JSON only, no markdown fences.",
+              },
+            ],
+          },
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 8000,
+            responseMimeType: "application/json",
+          },
+        }),
       },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: "You are a professional travel planner. Always respond with valid JSON only, no markdown fences." },
-          { role: "user", content: prompt },
-        ],
-        temperature: 0.7,
-        max_tokens: 8000,
-        response_format: { type: "json_object" },
-      }),
-    });
+    );
 
     if (!res.ok) {
       const text = await res.text();
-      console.error("Groq API error", res.status, text);
+      console.error("Gemini API error", res.status, text);
       if (res.status === 429) throw new Error("Too many requests — please try again in a moment.");
       if (res.status === 401 || res.status === 403)
-        throw new Error("Invalid or unauthorized Groq API key. Please update the GROQ_API_KEY secret.");
+        throw new Error("Invalid or unauthorized Gemini API key. Please update the GEMINI_API_KEY secret.");
       let detail = text.slice(0, 300);
       try {
         const parsedErr = JSON.parse(text) as { error?: { message?: string } };
@@ -126,14 +134,16 @@ Rules:
       } catch {
         // keep raw text
       }
-      if (res.status === 404 || /decommissioned|does not exist|model_not_found/i.test(detail)) {
-        throw new Error(`Groq model "${model}" is unavailable: ${detail}`);
+      if (res.status === 404 || /not found|is not supported|model/i.test(detail)) {
+        throw new Error(`Gemini model "${model}" is unavailable: ${detail}`);
       }
       throw new Error(`AI planner failed (${res.status}): ${detail}`);
     }
 
-    const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-    const raw = json.choices?.[0]?.message?.content ?? "";
+    const json = (await res.json()) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
+    const raw = json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
     const content = raw.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
     let parsed: TripPlan;
     try {
