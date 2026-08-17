@@ -4,6 +4,7 @@ import { ArrowRight, Compass, MapPin, Sparkles, Star, Wallet, Wand2 } from "luci
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { DESTINATIONS } from "@/lib/destinations";
+import { SmartImage } from "@/components/SmartImage";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -236,7 +237,7 @@ function Popular() {
               to="/auth"
               className="group relative block aspect-[5/6] overflow-hidden rounded-3xl"
             >
-              <img src={d.image} alt={d.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              <SmartImage src={d.image} query={`${d.name} ${d.country}`} destination={d.name} alt={d.name} aspectClassName="h-full w-full" className="transition-transform duration-700 group-hover:scale-110" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
               <div className="absolute inset-x-5 bottom-5">
                 <div className="text-[11px] font-medium uppercase tracking-widest text-primary">{d.category}</div>

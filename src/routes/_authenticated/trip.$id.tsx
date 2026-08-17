@@ -121,7 +121,7 @@ function TripDetails() {
             <div>
               <div className="text-xs uppercase tracking-widest text-primary">{trip.days} day itinerary</div>
               <h1 className="mt-2 font-display text-5xl font-black sm:text-6xl">{trip.destination}</h1>
-              <p className="mt-3 max-w-xl text-muted-foreground">{plan.summary}</p>
+              <p className="mt-3 max-w-xl text-muted-foreground">{money(plan.summary)}</p>
             </div>
             <div className="flex shrink-0 gap-2">
               <button onClick={toggleFav} className="grid h-11 w-11 place-items-center rounded-full glass-strong">
@@ -145,7 +145,7 @@ function TripDetails() {
                   const aiPlace = d.places?.find(
                     (pl) => (pl.slot ?? "").toLowerCase() === slot,
                   );
-                  const text = d[slot];
+                  const text = money(d[slot]);
                   return {
                     label: slot.charAt(0).toUpperCase() + slot.slice(1),
                     text,
@@ -198,7 +198,7 @@ function TripDetails() {
               ) : (
                 <div className="mt-3 text-sm text-muted-foreground">Unavailable</div>
               )}
-              <div className="mt-3 text-xs text-muted-foreground">Best time: {plan.best_time_to_visit}</div>
+              <div className="mt-3 text-xs text-muted-foreground">Best time: {money(plan.best_time_to_visit)}</div>
             </div>
 
             {mapSrc && (
@@ -235,15 +235,15 @@ function TripDetails() {
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-3">
-          <PlaceListCard icon={<MapPin className="h-4 w-4" />} title="Nearby attractions" items={plan.recommended_places?.map((p) => ({ t: p.name, s: p.why })) ?? []} destination={trip.destination} />
-          <PlaceListCard icon={<Utensils className="h-4 w-4" />} title="Restaurants" items={plan.restaurants?.map((p) => ({ t: p.name, s: `${p.cuisine} — ${p.note}` })) ?? []} destination={trip.destination} />
+          <PlaceListCard icon={<MapPin className="h-4 w-4" />} title="Nearby attractions" items={plan.recommended_places?.map((p) => ({ t: p.name, s: money(p.why) })) ?? []} destination={trip.destination} />
+          <PlaceListCard icon={<Utensils className="h-4 w-4" />} title="Restaurants" items={plan.restaurants?.map((p) => ({ t: p.name, s: `${p.cuisine} — ${money(p.note)}` })) ?? []} destination={trip.destination} />
           <PlaceListCard icon={<MapPin className="h-4 w-4" />} title="Hotels" items={plan.hotels?.map((p) => ({ t: p.name, s: `${p.area} · ${money(p.price_range)}` })) ?? []} destination={trip.destination} />
         </div>
 
         <div className="mt-6 grid gap-6 md:grid-cols-3">
-          <TipsCard title="Travel tips" items={plan.travel_tips} />
-          <TipsCard title="Packing" items={plan.packing_list} />
-          <TipsCard title="Emergency tips" items={plan.emergency_tips} />
+          <TipsCard title="Travel tips" items={plan.travel_tips?.map(money)} />
+          <TipsCard title="Packing" items={plan.packing_list?.map(money)} />
+          <TipsCard title="Emergency tips" items={plan.emergency_tips?.map(money)} />
         </div>
       </main>
     </div>

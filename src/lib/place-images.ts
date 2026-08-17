@@ -58,7 +58,7 @@ function isUsableUrl(url: unknown): url is string {
   return typeof url === "string" && /^https?:\/\//.test(url.trim());
 }
 
-async function json(url: string, timeoutMs = 8000): Promise<any | null> {
+async function json(url: string, timeoutMs = 4000): Promise<any | null> {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -140,18 +140,19 @@ export async function resolvePlaceImage(
     ? [`${name} ${dest}`, name]
     : [name];
 
+  // Run every source for every query in parallel and take the first non-null
+  // result. This cuts worst-case resolution from ~48s (3 sequential sources ×
+  // 2 queries × 8s) to ~4s — the difference between images showing up and the
+  // user seeing a permanent loading state.
+  const candidates = queries.flatMap((q) => [
+    fromWikipedia(q),
+    fromCommons(q),
+    fromOpenverse(q),
+  ]);
   const task = (async () => {
-    for (const q of queries) {
-      const wiki = await fromWikipedia(q);
-      if (wiki) return wiki;
-    }
-    for (const q of queries) {
-      const commons = await fromCommons(q);
-      if (commons) return commons;
-    }
-    for (const q of queries) {
-      const ov = await fromOpenverse(q);
-      if (ov) return ov;
+    for (const p of candidates) {
+      const r = await p;
+      if (r) return r;
     }
     return null;
   })();
