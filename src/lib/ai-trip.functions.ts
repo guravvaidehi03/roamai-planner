@@ -92,7 +92,7 @@ Rules:
 - recommended_places: 6 items. restaurants: 5. hotels: 4. budget_breakdown: 5. travel_tips: 6. packing_list: 8. emergency_tips: 4.
 - Use real place names for ${data.destination}. Be specific.
 - Every itinerary entry MUST include a "places" array with exactly one entry per slot (morning, afternoon, evening). "name" must be the real, searchable proper name of the specific landmark/venue in ${data.destination} (e.g. "Colosseum", "Gateway of India") — never a generic phrase like "local market" or "the hotel".
-- "total_estimated_cost" MUST equal the exact sum of the budget_breakdown amounts, for the whole party of ${data.travelers} travellers over ${data.days} days, and must be realistic for Indian travellers with a ${data.budget} budget.
+- The user's total budget is ${data.budget}. The sum of ALL budget_breakdown amounts MUST equal exactly ${data.budget} — not a rupee more, not a rupee less. "total_estimated_cost" MUST also equal ${data.budget}. Distribute the budget across the 5 categories (Accommodation, Food, Transport, Activities, Misc) proportionally and realistically for ${data.travelers} travellers over ${data.days} days, but the total MUST be ${data.budget}. Do NOT invent your own budget total.
 - All monetary values (budget_breakdown amounts and hotel price_range) MUST be in Indian Rupees using the ₹ symbol with Indian digit grouping (e.g. "₹1,25,000", "₹8,000 - ₹12,000 per night"). Never use $, USD, EUR or any other currency.`;
 
     const res = await fetch(

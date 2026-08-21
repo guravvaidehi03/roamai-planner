@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/create-trip")({
 
 const TRAVEL_TYPES = ["Solo", "Couple", "Family", "Friends", "Business"];
 const TRANSPORTS = ["Flight", "Train", "Road trip", "Cruise"];
-const HOTELS = ["Hostel", "Boutique", "4-star", "5-star / Luxury", "Airbnb"];
+const HOTELS = ["Budget Hotel", "3-star", "4-star", "5-star / Luxury", "Airbnb / Vacation Rental"];
 const INTERESTS = ["Culture", "Food", "Nature", "Adventure", "Nightlife", "Shopping", "Relax", "History", "Beach"];
 
 function CreateTrip() {
@@ -31,7 +31,7 @@ function CreateTrip() {
 
   const [destination, setDestination] = useState(search.destination ?? "");
   const [days, setDays] = useState(5);
-  const [budget, setBudget] = useState("₹1,25,000");
+  const [budget, setBudget] = useState("₹50,000");
   const [travelers, setTravelers] = useState("2");
   const [tripType, setTripType] = useState("Couple");
   const [transport, setTransport] = useState("Flight");
